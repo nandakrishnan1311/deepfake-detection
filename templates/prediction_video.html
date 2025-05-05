@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+        }
+        .upload-box {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .hero-section {
+            background-color: #343a40;
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 15px;
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+        .upload-progress {
+            display: none;
+            margin-top: 20px;
+        }
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .file-input input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            background: white;
+            cursor: pointer;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero-section text-center">
+            <div class="logo">DeepFake Detector</div>
+            <p class="lead">Upload a video to analyze it for potential deepfake manipulation</p>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="upload-box">
+                    <h2 class="text-center mb-4">Upload Video</h2>
+                    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                        <div class="mb-3">
+                            <label for="video" class="form-label">Select video file to analyze</label>
+                            <div class="file-input">
+                                <input type="file" class="form-control" id="video" name="video" accept=".mp4,.avi,.mov,.mkv" required>
+                            </div>
+                            <div class="form-text">Supported formats: .mp4, .avi, .mov, .mkv (max 500MB)</div>
+                        </div>
+                        
+                    
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="upload-button">
+                                <i class="bi bi-upload"></i> Analyze Video
+                            </button>
+                        </div>
+                        
+                        <div class="upload-progress" id="upload-progress">
+                            <div class="progress mt-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center mt-2">Uploading and analyzing video. This may take several minutes...</p>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>How it works</h3>
+                    </div>
+                    <div class="card-body">
+                        <ol>
+                            <li>Upload a video file that you want to analyze</li>
+                            <li>Our system will process the video frame by frame</li>
+                            <li>Each frame is analyzed using a deep learning model trained to detect manipulated content</li>
+                            <li>Results are provided with confidence scores and visualizations</li>
+                            <li>You'll receive a detailed analysis report and an annotated video</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function() {
+            document.getElementById('upload-button').disabled = true;
+            document.getElementById('upload-progress').style.display = 'block';
+            
+            // Simulate progress (actual progress would require additional backend work)
+            let progress = 0;
+            const progressBar = document.querySelector('.progress-bar');
+            const interval = setInterval(function() {
+                progress += 1;
+                progressBar.style.width = Math.min(progress, 95) + '%';
+                if (progress >= 95) {
+                    clearInterval(interval);
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
