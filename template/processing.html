@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Detection Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .result-box {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .header-section {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+        .frame-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .frame-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .frame-item img {
+            width: 100%;
+            height: auto;
+        }
+        .frame-caption {
+            padding: 8px;
+            background-color: #f8f9fa;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .analysis-text {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .verdict-real {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .verdict-fake {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 .25rem .25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-section text-center">
+            <div class="logo">DeepFake Detector</div>
+            <p class="lead">Analysis Results</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="result-box">
+                    <h2 class="text-center mb-4">Video Analysis Results</h2>
+                    
+                    <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">Summary</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="video-tab" data-bs-toggle="tab" data-bs-target="#video" type="button" role="tab" aria-controls="video" aria-selected="false">Analyzed Video</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="frames-tab" data-bs-toggle="tab" data-bs-target="#frames" type="button" role="tab" aria-controls="frames" aria-selected="false">Sample Frames</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="detailed-tab" data-bs-toggle="tab" data-bs-target="#detailed" type="button" role="tab" aria-controls="detailed" aria-selected="false">Detailed Analysis</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="resultTabsContent">
+                        <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Extract verdict from analysis text -->
+                                    {% if "OVERALL VERDICT: Real" in analysis_text %}
+                                        <div class="verdict-real">
+                                            <h3>Overall Verdict: Real</h3>
+                                            <p>This video appears to be authentic content.</p>
+                                        </div>
+                                    {% else %}
+                                        <div class="verdict-fake">
+                                            <h3>Overall Verdict: AI Generated</h3>
+                                            <p>This video appears to contain manipulated content.</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <h4>Key Findings:</h4>
+                                    <ul>
+                                        {% for line in analysis_text.split('\n') %}
+                                            {% if "frames analyzed" in line or "FPS" in line or "duration" in line or "Average confidence" in line or "Frames detected as real" in line or "Frames detected as AI-generated" in line %}
+                                                <li>{{ line }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4>Confidence Graph</h4>
+                                    <img src="{{ url_for('result_file', session_id=session_id, filename=graph_file) }}" class="img-fluid" alt="Confidence Graph">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="video" role="tabpanel" aria-labelledby="video-tab">
+                            {% if analyzed_video %}
+                                <div class="text-center">
+                                    <h4>Analyzed Video with Detection Results</h4>
+                                    <video width="100%" controls>
+                                        <source src="{{ url_for('video_file', session_id=session_id, filename=analyzed_video) }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <p class="mt-3">
+                                        <a href="{{ url_for('video_file', session_id=session_id, filename=analyzed_video) }}" class="btn btn-primary" download>
+                                            Download Analyzed Video
+                                        </a>
+                                    </p>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    Analyzed video not available.
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="frames" role="tabpanel" aria-labelledby="frames-tab">
+                            <h4>Sample Analyzed Frames</h4>
+                            {% if sample_frames %}
+                                <div class="frame-grid">
+                                    {% for frame in sample_frames %}
+                                        <div class="frame-item">
+                                            <img src="{{ url_for('frame_file', session_id=session_id, filename=frame) }}" class="img-fluid" alt="Frame {{ loop.index }}">
+                                            <div class="frame-caption">
+                                                Frame {{ frame.split('_')[2].split('.')[0] }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No sample frames available.</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="detailed" role="tabpanel" aria-labelledby="detailed-tab">
+                            <h4>Complete Analysis Report</h4>
+                            <div class="analysis-text">
+                                {{ analysis_text }}
+                            </div>
+                            <p class="mt-3">
+                                <a href="{{ url_for('result_file', session_id=session_id, filename='detailed_analysis.txt') }}" class="btn btn-secondary" download>
+                                    Download Analysis Report
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 col-6 mx-auto mb-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        Analyze Another Video
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
